@@ -34,6 +34,7 @@ public class EcuacionesRecurrencia extends JFrame implements ActionListener{
     JScrollPane scrollPane3 = new JScrollPane();
     
     double [] coef, coefDerivada, raices;
+    int grados;
     
     DecimalFormat formato = new DecimalFormat("####.######");
     
@@ -45,8 +46,7 @@ public class EcuacionesRecurrencia extends JFrame implements ActionListener{
         ecuacion.setTitle("Ecueciones en recurrencia");
         ecuacion.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         ecuacion.setVisible(true); 
-        
-        
+         
     }
     
     EcuacionesRecurrencia(){
@@ -157,7 +157,7 @@ public class EcuacionesRecurrencia extends JFrame implements ActionListener{
             
             scrollPane.removeAll();
             
-            int grados = Integer.parseInt(fieldGrado.getText());
+            grados = Integer.parseInt(fieldGrado.getText());
             
             valoresIniciales = new JTextField [grados][2];
             coeficientes = new JTextField [grados + 1];
@@ -214,7 +214,7 @@ public class EcuacionesRecurrencia extends JFrame implements ActionListener{
         
             coef = new double[coeficientes.length];
             coefDerivada = new double[coeficientes.length];
-            raices = new double[coeficientes.length];
+            raices = new double[grados];
             
             for(int i=0; i < coeficientes.length; i++){
             
@@ -251,32 +251,79 @@ public class EcuacionesRecurrencia extends JFrame implements ActionListener{
                 double a = funcionOriginal(extremoIzq, coef);
                 double b = funcionOriginal(extremoDer, coef);
                 
-                int signo = 1;
-                
-                if((a*b)<0){
+                if((a*b)<=0){
                 
                     System.out.println( "Hay raiz entre: " + extremoIzq + " y " + extremoDer  );
                     
                     if(Math.abs(a) < Math.abs(b)){
                     
-                        System.out.println( "Es: " + formato.format( newtonRapson(extremoIzq)));
-                        
+                        System.out.println( "Es: " + formato.format( newtonRapson(extremoIzq)) );
+                        raices[j] = Double.parseDouble(formato.format( newtonRapson(extremoIzq)));
+                        j++;
                         
                     } else {
                         
                         System.out.println( "Es: " + formato.format( newtonRapson(extremoDer)));
+                        raices[j] = Double.parseDouble(formato.format( newtonRapson(extremoDer)));
+                        j++;
                         
                     }
-                    
-                    
-                    
+                     
                 }
                 
                 extremoIzq = extremoDer;
-                extremoDer = extremoDer + 0.5;
+                extremoDer = extremoDer + 0.1;
                 
             }
+            
+            System.out.println(" ");
+            
+            for(int i=0; i<raices.length; i++){
+            
+                System.out.println(raices[i] + ", ");
+                
+            }
+            
+            System.out.println(" ");
+            
+            double [] [] matriz = new double [grados][grados+1]; 
 
+            int exp = 0;
+            
+            for(int i = 0; i< grados; i++){
+            
+                for(int k = 0; k<grados + 1; k++){
+                    
+                    if(k < grados){
+                    
+                        if(k>0 && (raices[k] == raices[k-1])){
+                        
+                            exp++;
+                            
+                        } else {
+                            
+                            exp = 0;
+                            
+                        }
+                        
+                        double n = Double.parseDouble( valoresIniciales[i][0].getText() );
+                        
+                        matriz[i][j] = Math.pow(raices[k], n) * Math.pow(n, exp);
+                        
+                    }else {
+                    
+                        matriz[i][j] = Double.parseDouble( valoresIniciales[i][1].getText() );
+                        
+                    }
+                    
+                    System.out.print(matriz[i][j] + ", ");
+                    
+                }
+                
+                System.out.println(" ");
+                
+            }
+            
         }
     
     }

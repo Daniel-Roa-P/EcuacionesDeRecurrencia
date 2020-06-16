@@ -33,6 +33,8 @@ public class EcuacionesRecurrencia extends JFrame implements ActionListener{
     JScrollPane scrollPane2 = new JScrollPane();
     JScrollPane scrollPane3 = new JScrollPane();
     
+    private final double EPSILON = 1e-10;
+    
     double [] coef, coefDerivada, raices;
     int grados;
     
@@ -86,8 +88,8 @@ public class EcuacionesRecurrencia extends JFrame implements ActionListener{
         scrollPane1.setBounds(0, 70, 480, 300);
         scrollPane1.setPreferredSize(new Dimension(480, 300)); 
         
-        scrollPane2.setBounds(130, 410, 500, 30);
-        scrollPane2.setPreferredSize(new Dimension(500, 30));  
+        scrollPane2.setBounds(130, 410, 1000, 30);
+        scrollPane2.setPreferredSize(new Dimension(1000, 30));  
         
         scrollPane3.setBounds(130, 410, 350, 50);
         scrollPane3.setPreferredSize(new Dimension(350, 50));
@@ -125,6 +127,65 @@ public class EcuacionesRecurrencia extends JFrame implements ActionListener{
         }
         
         return y;
+        
+    }
+    
+    public double[] eliminacionGauss(double[][] A, double[] b) {
+        
+        int n = b.length;
+
+        for (int p = 0; p < n; p++) {
+
+            int max = p;
+            
+            for (int i = p + 1; i < n; i++) {
+                
+                if (Math.abs(A[i][p]) > Math.abs(A[max][p])) {
+                    max = i;
+                }
+                
+            }
+            
+            double[] temp = A[p]; A[p] = A[max]; A[max] = temp;
+            double t = b[p]; b[p] = b[max]; b[max] = t;
+
+            
+            if (Math.abs(A[p][p]) <= EPSILON) {
+                
+                throw new ArithmeticException("Matrix is singular or nearly singular");
+                
+            }
+
+            for (int i = p + 1; i < n; i++) {
+                
+                double alpha = A[i][p] / A[p][p];
+                b[i] -= alpha * b[p];
+                
+                for (int j = p; j < n; j++) {
+                    
+                    A[i][j] -= alpha * A[p][j];
+                    
+                }
+            }
+        }
+
+        double[] x = new double[n];
+        
+        for (int i = n - 1; i >= 0; i--) {
+            
+            double sum = 0.0;
+            
+            for (int j = i + 1; j < n; j++) {
+                
+                sum += A[i][j] * x[j];
+                
+            }
+            
+            x[i] = (b[i] - sum) / A[i][i];
+            
+        }
+        
+        return x;
         
     }
     
@@ -286,8 +347,9 @@ public class EcuacionesRecurrencia extends JFrame implements ActionListener{
             
             System.out.println(" ");
             
-            double [] [] matriz = new double [grados][grados+1]; 
-
+            double [] [] matriz = new double [grados][grados]; 
+            double [] soluciones = new double [grados];
+                    
             int exp = 0;
             
             for(int i = 0; i< grados; i++){
@@ -308,22 +370,59 @@ public class EcuacionesRecurrencia extends JFrame implements ActionListener{
                         
                         double n = Double.parseDouble( valoresIniciales[i][0].getText() );
                         
-                        matriz[i][j] = Math.pow(raices[k], n) * Math.pow(n, exp);
+                        matriz[i][k] = Math.pow(raices[k], n) * Math.pow(n, exp);
                         
-                    }else {
+                        System.out.print(matriz[i][k] + ", ");
+                        
+                    } else {
                     
-                        matriz[i][j] = Double.parseDouble( valoresIniciales[i][1].getText() );
+                        soluciones[i] = Double.parseDouble( valoresIniciales[i][1].getText() );
+                        System.out.print(soluciones[i]);
                         
                     }
                     
-                    System.out.print(matriz[i][j] + ", ");
-                    
+  
                 }
                 
                 System.out.println(" ");
+                               
+            }
+            
+            double [] ecuacionFinal; 
+            ecuacionFinal = eliminacionGauss(matriz, soluciones);
+
+            String ecuacionTemporal = "F(N) = ";
+
+            exp = 0;
+            
+            for(int i = 0; i < soluciones.length; i++){
+                
+                if(i>0 && (raices[i] == raices[i-1])){
+                        
+                    exp++;
+                    ecuacionTemporal = ecuacionTemporal + "( " + formato.format(ecuacionFinal[i]) + " ) " +  "( n^" + exp  + " ) ( " + formato.format(raices[i]) + "^n) " + " + ";
+
+
+                } else {
+
+                    exp = 0;
+                    ecuacionTemporal = ecuacionTemporal + "( " + formato.format(ecuacionFinal[i]) + " ) " + "( " + formato.format(raices[i]) + "^n ) " + " + ";
+
+                }
                 
             }
             
+            System.out.println(ecuacionTemporal);
+            
+            scrollPane2.removeAll();
+            
+            JLabel textoFinal = new JLabel(ecuacionTemporal);
+            textoFinal.setBounds(0, 0, 1000, 30);
+            
+            scrollPane2.add(textoFinal);
+            scrollPane2.repaint();
+            
+            scrollPane3.setViewportView(scrollPane2);
         }
     
     }
